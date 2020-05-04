@@ -1,18 +1,30 @@
-﻿<!DOCTYPE html>
-<html>
-	<head>
-		<meta charset = 'utf-8'>
-		<title>paiza bbs</title>
-		<style>			body {
-				padding: 10px;
-			}
-		</style>
-	</head>
-	<body>
+{% extends './base.html' %}
+{% block content %}
 		<h1>paiza bbs</h1>
 		<p>{{ message }}</p>
-		{% for player in players %}
-			<p>{{ player }}は、モンスターと戦った。</p>
-		{% endfor %}
-	</body>
-</html>
+
+        {% if searchForm %}
+            <form action='{% url "bbs:index" %}' method='get'>
+                <div class='form-group'>
+                    {{ searchForm }}
+                    <input type='submit' class='btn btn-outline-primary' value ='OK'>
+                    <a href='{% url "bbs:index" %}' class='btn btn-outline-secondary'>クリア</a>
+                </div>
+            </form>
+        {% endif %}
+
+        <table class='table table-striped table-hover'>
+            {% for article in articles %}
+            <tr>
+                <td>{{ article.content }}</td>
+                <td>{{ article.user_name }}</td>
+                <td>
+                    <a href='{% url "bbs:detail" article.id %}' class='btn btn-outline-primary'>詳細</a>
+                </td>
+            </tr>
+            {% endfor %}
+            </table>
+            <p>
+                <a href='{% url "bbs:new" %}' class='btn btn-outline-primary'>新規</a>
+            </p>	
+{% endblock %}

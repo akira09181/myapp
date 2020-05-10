@@ -1,0 +1,11 @@
+{% extends './base.html' %}
+{% load bootstrap4 %}
+
+{% block content %}
+<h1>運用利益：＄{{ gains }}</h1>
+<p>最大持ち単価：{{max_stock}}</p>
+<p>最大支出：＄{{ max_usd }}</p>  
+{{svg}}    
+        <a href='{% url "bbs:index" %}' class='btn btn-outline-secondary'>戻る</a>
+    
+{% endblock %}

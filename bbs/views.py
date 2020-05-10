@@ -3,9 +3,20 @@ from django.http import HttpResponse
 from .models import Article
 from .forms import SearchForm
 from .forms import ArticleForm
+from .forms import InoutForm
+from .models import Inout
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import pathlib
+from .models import Calc
+import io
+
+
 
 def index(request):
     searchForm = SearchForm(request.GET)
+    inoutForm=InoutForm(request.GET)
     if searchForm.is_valid():
         keyword = searchForm.cleaned_data['keyword']
         articles= Article.objects.filter(content__contains=keyword)
@@ -13,9 +24,10 @@ def index(request):
         searchForm = SearchForm()
         articles = Article.objects.all()
     context = {
-		'message': 'Welcome my BBS',
+		'message': 'Welcome my system',
 		'articles':articles,
         'searchForm': searchForm,
+        'inoutForm':inoutForm,
     }
     return render(request, 'bbs/index.html' , context)
 def detail(request,id):
@@ -79,3 +91,63 @@ def delete(request,id):
         'articles':articles,
     }
     return render(request, 'bbs/index.html' , context)
+def calc(request):
+    
+    inouts = Inout.objects.all()
+    bit = pd.read_csv('../bitcoin.csv')
+    bit=bit.iloc[::-1]
+    itv=int(request.POST['interval'])
+    v=int(request.POST['volume'])
+    x=bit.Id
+    y=bit.Close
+    plt.plot(x,y)
+
+
+    #plt.tight_layout()
+    #buf=io.BytesIO()
+    #plt.savefig(buf,format='svg',bbox_inches='tight')
+    #svg=buf.getvalue()
+    #buf.close()
+    #plt.cla()
+    bot=int(request.POST['creterion_buy'])
+    top=int(request.POST['creterion_sell'])
+    total=0
+    stock=0
+    count=0
+    high=0
+    hstock=0
+    for i in range(0,len(bit),itv+1):
+        
+        if bit.Close[len(bit)-i-1] <=bot:
+            total-=(bit.Close[len(bit)-i-1])*v
+            stock+=(1*v)
+        elif bit.Close[len(bit)-i-1] >=top:
+            total+=bit.Close[len(bit)-i-1]*stock
+            stock=0
+        else:
+            pass
+        count+=1
+        
+        if high>total:
+            high=total
+            hstock=stock
+    total+=bit.Close[len(bit)-1]*stock
+    stock=0
+    
+    Calc.max_stock=hstock
+    Calc.max_usd=high
+    Calc.gains=total
+    print(Calc.gains)
+    calcs=Calc.objects.all()
+    context = {
+        
+        'calcs':calcs,
+        'max_usd':int(high),
+        'max_stock':int(hstock),
+        'gains':int(total),
+
+    }
+   
+    
+   
+    return render(request, 'bbs/result.html',context,)
